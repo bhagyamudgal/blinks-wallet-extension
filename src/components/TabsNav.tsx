@@ -1,14 +1,13 @@
-import { RiNftFill } from "react-icons/ri";
 import { cn } from "../libs/style";
 import { useNftsTabViewStore } from "../store/nftsTabView";
 import { useTabStore } from "../store/tab";
 
-export function Footer() {
+export function TabsNav() {
     const { changeTab, tab } = useTabStore();
     const { changeNftsTabView, setNftMint } = useNftsTabViewStore();
 
     return (
-        <footer id="footer" className="bg-blue-200 sticky bottom-0 z-10">
+        <nav>
             <div className="grid grid-cols-3 gap-5">
                 <button
                     onClick={() => {
@@ -17,13 +16,13 @@ export function Footer() {
                         setNftMint(null);
                     }}
                     className={cn(
-                        "p-4 text-2xl hover:bg-blue-400 flex justify-center items-center",
-                        tab === "nfts" && "bg-blue-400"
+                        "text-sm font-medium p-2 hover:border-b-2 border-white flex justify-center items-center",
+                        tab === "nfts" && "border-b-2 border-white"
                     )}
                 >
-                    <RiNftFill />
+                    Collectibles
                 </button>
             </div>
-        </footer>
+        </nav>
     );
 }

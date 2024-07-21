@@ -5,8 +5,8 @@ import { Buffer } from "buffer";
 import { useState } from "react";
 import ReactPlayer from "react-player";
 import { env } from "../env";
-import { cn } from "../libs/style";
 import { useWalletStore } from "../store/wallet";
+import { Button } from "./Button";
 
 export function Blink({
     action,
@@ -125,19 +125,17 @@ export function Blink({
             {action.actions?.map((a) => {
                 if (!a?.parameter) {
                     return (
-                        <button
-                            disabled={
+                        <Button
+                            isDisabled={
                                 isLoading[a.label] ||
                                 action.disabled ||
                                 !!success
                             }
-                            className={cn(
-                                "bg-blue-500 text-white p-2 rounded-lg w-full disabled:cursor-not-allowed disabled:opacity-70"
-                            )}
                             onClick={() => handleActionPost(a)}
+                            isLoading={isLoading[a.label]}
                         >
-                            {isLoading[a.label] ? "Loading..." : a.label}
-                        </button>
+                            {a.label}
+                        </Button>
                     );
                 } else {
                     return (
@@ -159,26 +157,24 @@ export function Blink({
                             className="space-y-2"
                         >
                             <input
-                                className="w-full border p-2 border-blue-400 rounded-md space-y-2"
+                                className="w-full border p-2 border-card-background-dark rounded-md space-y-2"
                                 placeholder={a.parameter.label}
                                 name={a.parameter.name}
                                 id={`input-${a.parameter.name}`}
                                 required={a.parameter.required}
                             />
 
-                            <button
+                            <Button
                                 type="submit"
-                                disabled={
+                                isDisabled={
                                     isLoading[a.label] ||
                                     action.disabled ||
                                     !!success
                                 }
-                                className={cn(
-                                    "bg-blue-500 text-white p-2 rounded-lg w-full disabled:cursor-not-allowed disabled:opacity-70"
-                                )}
+                                isLoading={isLoading[a.label]}
                             >
-                                {isLoading[a.label] ? "Loading..." : a.label}
-                            </button>
+                                {a.label}
+                            </Button>
                         </form>
                     );
                 }

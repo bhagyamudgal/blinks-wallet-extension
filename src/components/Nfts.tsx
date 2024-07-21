@@ -1,6 +1,7 @@
 import { useWalletNfts } from "../hooks/useWalletNfts";
 import { useNftsTabViewStore } from "../store/nftsTabView";
 import { useWalletStore } from "../store/wallet";
+import { LoadingSkeleton } from "./LoadingSkeleton";
 
 export function Nfts() {
     const { setNftMint, changeNftsTabView } = useNftsTabViewStore();
@@ -11,11 +12,21 @@ export function Nfts() {
     });
 
     if (isPending) {
-        return <p>Loading...</p>;
+        return (
+            <div className="p-4 grid grid-cols-2 gap-4 flex-1">
+                {Array.from({ length: 4 }).map((_, i) => (
+                    <LoadingSkeleton key={i} className="h-full w-full" />
+                ))}
+            </div>
+        );
     }
 
     if (data?.items?.length === 0) {
-        return <p className="text-center">No NFTs found.</p>;
+        return (
+            <p className="text-center p-4 py-8 font-medium text-lg">
+                No NFTs found.
+            </p>
+        );
     }
 
     return (
@@ -35,7 +46,7 @@ export function Nfts() {
                             alt={item.content?.metadata?.name}
                         />
 
-                        <p className="text-left font-medium">
+                        <p className="text-left font-bold">
                             {item.content?.metadata?.name}
                         </p>
                     </button>
