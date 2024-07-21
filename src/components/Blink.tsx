@@ -1,17 +1,30 @@
 import type { Action, ActionComponent } from "@dialectlabs/blinks";
+import type { DAS } from "@shyft-to/js";
 import { Connection, Transaction } from "@solana/web3.js";
 import { Buffer } from "buffer";
 import { useState } from "react";
+import ReactPlayer from "react-player";
 import { env } from "../env";
 import { cn } from "../libs/style";
 import { useWalletStore } from "../store/wallet";
 
-export function Blink({ action }: { action: Action }) {
+export function Blink({
+    action,
+    nft,
+}: {
+    action: Action;
+    nft: DAS.GetAssetResponse;
+}) {
     const { address, keypair } = useWalletStore();
 
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<Record<string, boolean>>({});
+    const [txSig, setTxSig] = useState<string | null>(null);
+
+    const video_url = nft.content?.metadata.attributes?.find(
+        (att) => att.trait_type === "video_url"
+    )?.value;
 
     if (!address || !keypair) {
         return null;
@@ -50,6 +63,9 @@ export function Blink({ action }: { action: Action }) {
 
             const tx = Transaction.from(Buffer.from(res.transaction, "base64"));
 
+            tx.feePayer = keypair.publicKey;
+            tx.recentBlockhash = block.blockhash;
+
             console.log({ tx });
 
             tx.sign(keypair);
@@ -71,6 +87,7 @@ export function Blink({ action }: { action: Action }) {
             }
 
             setSuccess(res.message);
+            setTxSig(txSig);
         } catch (error) {
             console.log({ error });
             setSuccess(null);
@@ -84,11 +101,23 @@ export function Blink({ action }: { action: Action }) {
 
     return (
         <div className="space-y-2 p-4">
-            <img
-                src={action.icon}
-                alt={action.title}
-                className="aspect-square"
-            />
+            {success && video_url && txSig ? (
+                <ReactPlayer
+                    url={`${video_url}?txSig=${txSig}`}
+                    style={{
+                        width: "100%",
+                    }}
+                    width={360}
+                    controls={true}
+                    playing={true}
+                />
+            ) : (
+                <img
+                    src={action.icon}
+                    alt={action.title}
+                    className="aspect-square"
+                />
+            )}
 
             <h1 className="text-xl font-bold">{action.title}</h1>
             <p>{action.description}</p>

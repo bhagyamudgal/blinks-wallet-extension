@@ -38,8 +38,8 @@ export function Nft() {
                 </button>
             </div>
 
-            {action ? (
-                <Blink action={action} />
+            {action && data ? (
+                <Blink action={action} nft={data} />
             ) : (
                 <div className="space-y-2 p-6">
                     <img
