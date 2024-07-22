@@ -101,7 +101,7 @@ export function Nft() {
                                     <span className="font-bold">
                                         {attr.trait_type}
                                     </span>
-                                    <span className="text-sm">
+                                    <span className="text-sm break-words">
                                         {attr.value}
                                     </span>
                                 </div>
