@@ -32,6 +32,10 @@ export function Nfts() {
     return (
         <div className="p-4 grid grid-cols-2 gap-4 flex-1">
             {data?.items?.map((item) => {
+                if (item.burnt) {
+                    return null;
+                }
+
                 return (
                     <button
                         className="space-y-1"

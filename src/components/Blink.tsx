@@ -1,6 +1,11 @@
 import type { Action, ActionComponent } from "@dialectlabs/blinks";
 import type { DAS } from "@shyft-to/js";
-import { Connection, Transaction } from "@solana/web3.js";
+import {
+    ComputeBudgetProgram,
+    Connection,
+    sendAndConfirmTransaction,
+    Transaction,
+} from "@solana/web3.js";
 import { Buffer } from "buffer";
 import { useState } from "react";
 import ReactPlayer from "react-player";
@@ -61,8 +66,13 @@ export function Blink({
 
             console.log({ block });
 
+            const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({
+                microLamports: 1,
+            });
+
             const tx = Transaction.from(Buffer.from(res.transaction, "base64"));
 
+            tx.add(addPriorityFee);
             tx.feePayer = keypair.publicKey;
             tx.recentBlockhash = block.blockhash;
 
@@ -70,20 +80,19 @@ export function Blink({
 
             tx.sign(keypair);
 
-            const txSig = await connection.sendRawTransaction(tx.serialize(), {
-                skipPreflight: true,
-            });
+            const txSig = await sendAndConfirmTransaction(
+                connection,
+                tx,
+                [keypair],
+                {
+                    commitment: "confirmed",
+                }
+            );
 
             console.log({ txSig });
 
-            const confirmResult = await connection.confirmTransaction({
-                blockhash: block.blockhash,
-                lastValidBlockHeight: block.lastValidBlockHeight,
-                signature: txSig,
-            });
-
-            if (confirmResult.value.err) {
-                throw new Error(confirmResult.value.err.toString());
+            if (!txSig) {
+                throw new Error("Tx sig not found!");
             }
 
             setSuccess(res.message);

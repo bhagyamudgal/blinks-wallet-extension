@@ -1,5 +1,13 @@
 import { Network, ShyftSdk } from "@shyft-to/js";
-import { Connection, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+import {
+    ComputeBudgetProgram,
+    Connection,
+    LAMPORTS_PER_SOL,
+    PublicKey,
+    sendAndConfirmTransaction,
+    Transaction,
+    type Keypair,
+} from "@solana/web3.js";
 import { env } from "../env";
 import type { Nft } from "../types";
 
@@ -78,4 +86,71 @@ export async function getWalletSolBalance(wallet: string) {
     const balance = await connection.getBalance(new PublicKey(wallet));
 
     return balance / LAMPORTS_PER_SOL;
+}
+
+export async function burnCollectible(data: {
+    mint: string;
+    wallet: string;
+    keypair: Keypair;
+}) {
+    const nft = await shyft.rpc.getAsset({
+        id: data.mint,
+    });
+
+    let encodedTx;
+
+    if (nft?.compression) {
+        const burnRes = await shyft.nft.compressed.burn({
+            mint: data.mint,
+            walletAddress: data.wallet,
+        });
+
+        encodedTx = burnRes.encoded_transaction;
+    } else {
+        encodedTx = await shyft.nft.burn({
+            mint: data.mint,
+            wallet: data.wallet,
+        });
+    }
+
+    if (!encodedTx) {
+        throw new Error("Failed to get the transaction!");
+    }
+
+    const connection = new Connection(env.RPC_URL, "confirmed");
+
+    console.log({ connection });
+
+    const block = await connection.getLatestBlockhash({
+        commitment: "confirmed",
+    });
+
+    console.log({ block });
+
+    const addPriorityFee = ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports: 1,
+    });
+
+    const tx = Transaction.from(Buffer.from(encodedTx, "base64"));
+
+    tx.add(addPriorityFee);
+    tx.feePayer = data.keypair.publicKey;
+    tx.recentBlockhash = block.blockhash;
+
+    console.log({ tx });
+
+    tx.sign(data.keypair);
+
+    const txSig = await sendAndConfirmTransaction(
+        connection,
+        tx,
+        [data.keypair],
+        {
+            commitment: "confirmed",
+        }
+    );
+
+    console.log({ txSig });
+
+    return txSig;
 }

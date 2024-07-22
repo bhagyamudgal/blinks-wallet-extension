@@ -1,15 +1,23 @@
 import "@dialectlabs/blinks/index.css";
 import { useAction } from "@dialectlabs/blinks/react";
+import { useState } from "react";
 import { IoArrowBackOutline } from "react-icons/io5";
 import { env } from "../env";
+
+import { useBurnCollectible } from "../hooks/useBurnCollectible";
 import { useNft } from "../hooks/useNft";
 import { useNftsTabViewStore } from "../store/nftsTabView";
+import { useWalletStore } from "../store/wallet";
 import { Blink } from "./Blink";
+import { Button } from "./Button";
 import { LoadingSkeleton } from "./LoadingSkeleton";
 
 export function Nft() {
     const { nftMint, setNftMint, changeNftsTabView } = useNftsTabViewStore();
+    const { address, keypair } = useWalletStore();
     const { isPending, data } = useNft({ mint: nftMint });
+    const [loadBlink, setLoadBlink] = useState(false);
+    const burnMutation = useBurnCollectible();
 
     const actionUrl = data?.content?.links?.external_url ?? "";
 
@@ -57,7 +65,7 @@ export function Nft() {
                 </button>
             </div>
 
-            {action && data ? (
+            {loadBlink && action && data ? (
                 <Blink action={action} nft={data} />
             ) : (
                 <div className="space-y-2 p-6">
@@ -66,6 +74,12 @@ export function Nft() {
                         src={data?.content?.links?.image}
                         alt={data?.content?.metadata?.name}
                     />
+
+                    {!loadBlink && action && data && (
+                        <Button onClick={() => setLoadBlink(true)}>
+                            Load Blink
+                        </Button>
+                    )}
 
                     <div className="space-y-1">
                         <h1 className="text-2xl font-bold">
@@ -94,6 +108,22 @@ export function Nft() {
                             );
                         })}
                     </div>
+
+                    {data?.id && address && keypair && (
+                        <Button
+                            className="bg-red-400"
+                            onClick={() =>
+                                burnMutation.mutate({
+                                    mint: data?.id,
+                                    wallet: address,
+                                    keypair,
+                                })
+                            }
+                            isLoading={burnMutation.isPending}
+                        >
+                            Burn Collectible
+                        </Button>
+                    )}
                 </div>
             )}
         </div>

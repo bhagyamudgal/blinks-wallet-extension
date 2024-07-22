@@ -18,5 +18,6 @@ export function useWalletSolBalance(data: Data) {
         queryKey: ["wallet-sol-balance", data],
         queryFn: () => fetchWalletSolBalance(data),
         enabled: !!data.wallet,
+        refetchInterval: 1000 * 60,
     });
 }
